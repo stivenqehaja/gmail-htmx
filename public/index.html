@@ -3,18 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cooper+Hewitt&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script> 
     <title>Gmail-HTMX</title>
-    <style>
-        #login-container,
-        #data-container, 
-        body{ 
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items:center;
-        }
-    </style>
+    
 </head>
 <body>
     <div class="container">
@@ -28,8 +22,7 @@
                 hx-get="/profile-data"
                 hx-trigger="load"
                 hx-target="#data-container"
-                hx-swap="innerHTML"
-                ><p>Loading profile data...</p>
+                hx-swap="innerHTML">
         </div>
 
         <div id="email-container"

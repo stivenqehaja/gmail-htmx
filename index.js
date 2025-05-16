@@ -136,10 +136,9 @@ app.get('/profile-data', async (req, res) => {
 
     }
     res.send(`
-        <h1>Login Successful</h1>
+        <h1>Logged In !</h1>
         <p>Name: ${user.name}</p>
         <p>Email: ${user.email}</p>
-        <pre>${JSON.stringify(user, null, 2)}</pre>
     `);
 });
 
@@ -151,6 +150,16 @@ app.get('/GetEmails', async (req, res) => {
         return res.status(401).send('User not authenticated');
     }
 
+    function getHeaders(headers, name) {
+        const header = headers.find(h => h.name.toLowerCase() === name.toLowerCase());
+        return header ? header.value : '';
+    }
+
+    function extractEmail(headerValue) {
+        const match = headerValue.match(/<(.+?)>/);
+        return match ? match[1] : headerValue;
+    }
+
     try {
         const access_token = req.session.user.access_token;
         const emailResponse = await axios.get(
@@ -160,22 +169,57 @@ app.get('/GetEmails', async (req, res) => {
                     Authorization: `Bearer ${access_token}`
                 },
                 params: {
-                    maxResults: 20,
-                    labelIds: 'INBOX',
+                    maxResults: 5,
+                    labelIds: ['INBOX'],
                     q: ''
                 }
             }
         );
 
-        const emailIds = emailResponse.data.messages;
-        console.log('emailIds: ' , emailIds);
-        let responseHtmlString = '';
-        emailIds.forEach(email => {
-            responseHtmlString += `<p>${email.id}</p>`;
-        });
+        const messages = emailResponse.data.messages;
+        console.log('emailIds: ' , messages);
+        const fullMessages = [];
 
-        res.send(responseHtmlString);
-    } catch(err) { 
+        for(const msg of messages) {
+            const messageResponse = await axios.get(
+                `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${access_token}`
+                    }
+                ,
+                params: {
+                    format: 'metadata', // or 'full' for full body
+                    metadataHeaders: ['From', 'To', 'Subject', 'Date']                
+                }
+            })
+
+            const headers = messageResponse.data.payload.headers;
+            const emailId = messageResponse.data.id
+            const rawSender = getHeaders(headers, 'From');
+            const rawReceiver = getHeaders(headers, 'To');
+
+            const sender = extractEmail(rawSender);
+            const receiver = extractEmail(rawReceiver);
+            const subject = getHeaders(headers, 'Subject');
+
+            // fullMessages.push({
+            //     emailId,
+            //     sender,
+            //     reciever,
+            //     subject
+            // });
+             fullMessages.push(`
+                <div class="email">
+                <p>${emailId}</p>
+                <p>${sender}</p>
+                <p>${receiver}</p>
+                <p>${subject}</p></div>`);
+        };
+
+        console.log(fullMessages)
+        res.send(fullMessages.join(''));
+    } catch(err) {
         console.log('Erorr fetching emails: ' + err.response?.data || err.message);
         res.status(500).send('Failed to fetch emails');
     }
