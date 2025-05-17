@@ -179,6 +179,15 @@ app.get('/GetEmails', async (req, res) => {
         const messages = emailResponse.data.messages;
         console.log('emailIds: ' , messages);
         const fullMessages = [];
+        fullMessages.push(` 
+            <table><thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Sender</th>
+                    <th>Subject</th>
+                    <th>Receiver</th>
+                </tr>
+            </thead>`);
 
         for(const msg of messages) {
             const messageResponse = await axios.get(
@@ -202,14 +211,17 @@ app.get('/GetEmails', async (req, res) => {
             const sender = extractEmail(rawSender);
             const receiver = extractEmail(rawReceiver);
             const subject = getHeaders(headers, 'Subject');
-
-             fullMessages.push(`
-                <div class="email">
-                <p>${emailId}</p>
-                <p>${sender}</p>
-                <p>${receiver}</p>
-                <p>${subject}</p></div>`);
+ 
+           fullMessages.push(`
+                <tr>
+                    <th>${emailId}</th>
+                    <th>${sender}</th>
+                    <th>${subject}</th>
+                    <th>${receiver}</th>
+                </tr>
+            `);
         };
+        fullMessages.push(`</tbody></table>`);
 
         console.log(fullMessages)
         res.send(fullMessages.join(''));
