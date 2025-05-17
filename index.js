@@ -203,12 +203,6 @@ app.get('/GetEmails', async (req, res) => {
             const receiver = extractEmail(rawReceiver);
             const subject = getHeaders(headers, 'Subject');
 
-            // fullMessages.push({
-            //     emailId,
-            //     sender,
-            //     reciever,
-            //     subject
-            // });
              fullMessages.push(`
                 <div class="email">
                 <p>${emailId}</p>
