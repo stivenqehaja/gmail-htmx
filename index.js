@@ -103,8 +103,8 @@ app.get('/oauth2callback', async(req, res) => {
     }
 });
 
-app.get('/ProfileList', async (req, res) => {
-    console.log('>>> Inside /ProfileList request');
+app.get('/AccountList', async (req, res) => {
+    console.log('>>> Inside /AccountList request');
     req.session.users = req.session.users || {};
     const users = req.session.users;
     
@@ -147,16 +147,19 @@ app.get('/ProfileList', async (req, res) => {
     }
 
     req.session.users = refreshedUsers;
-
-    const userListHtml = Object.values(refreshedUsers).map(user => `
-            <li class='profile-list-item'
-                hx-get='/GetAllEmails'
-                hx-target='#profile-list'
-                hx-swap='innerHTML'
-                data-email-id=${user.email}>
-                ${user.email}
-            </li>
+    console.log(refreshedUsers);
+   const userListHtml = Object.values(refreshedUsers).map(user => `
+            <button class='sidebar-account-list-item'
+                    type="button"
+                hx-get='/GetAllEmails/${user.email}'
+                hx-target='#sidebar-account-list'
+                hx-swap='innerHTML'>
+                <i class='bx bx-user'></i> 
+                <span>${user.email}</span>
+            </button>
         `).join('');
+
+        console.log(userListHtml)
 
     res.send(`
         ${userListHtml}
@@ -253,8 +256,8 @@ app.get('/GetAllEmails', async (req, res) => {
                 `;
 
                 allEmailTables.push(table);
-
-            console.log(table)
+                // console.log(table)
+            
         } catch(err) {
             console.log('Error fetching emails for', Email, '-', err.response?.data || err.message || err);
             continue;
@@ -272,6 +275,20 @@ app.get('/GetAllEmails', async (req, res) => {
     `);
 });
 
+
+app.get('/GetAllEmails/:emailId', async(req, res) => {
+
+    const email = req.params.emailId;
+    console.log(`>>> Inside /GetAllEmails/${email}`);
+    req.session.users = req.session.users || {};
+    const users = req.session.users;
+    if(Object.keys(users).length === 0) {
+        return res.status(401).send('No users authenticated');
+    }
+
+    const user = users[email];
+    console.log(user);
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

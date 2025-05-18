@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="./style.css">
     <link href="https://fonts.googleapis.com/css2?family=Cooper+Hewitt&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script> 
     <title>Gmail-HTMX</title>
     
@@ -14,22 +15,30 @@
     <div id="app-container">
 
         <!-- sidebar -->
-        <div id="sidebar-container">
-            <div class="sidebar-info">
-                <h1 class="sidebar-info-title">Gmail Hub</h1>
-                <buttonc class="add-account-btn" onclick="window.location.href='/auth/google'">
-                    <img id="google-icon" src="./static/google.png" alt="Google">
-                    <h3>Add Account</h3>
-                </button>
+        <nav id="sidebar-container">
+            <div id="sidebar-inner">
+                <header id="sidebar-headers">
+                    <button id="sidebar-burger"
+                            type="button"
+                            onclick="toggleSidebar()">
+                        <i class='bx bx-menu'></i> 
+                    </button>
+                    <h1 id="sidebar-headers-title">Gmail Hub</h1>
+                    
+                </header>
+                <nav id="sidebar-account-list"
+                    hx-get="/AccountList"
+                    hx-trigger="load"
+                    hx-target="#sidebar-account-list"
+                    hx-swap="beforeend">
+                    <button class="add-account-btn" onclick="window.location.href='/auth/google'">
+                        <img id="google-icon" src="./static/google.png" alt="Google">
+                        <span>Add Account</span>
+                    </button>
+
+                </nav>
             </div>
-            <nav id="sidebar-list"
-                hx-get="/ProfileList"
-                hx-trigger="load"
-                hx-target="#profile-list"
-                hx-swap="innerHTML">
-                <ul id="profile-list"></ul>
-            </nav>
-        </div>
+        </nav>
 
         <!-- emails -->
         <div id="container">
@@ -43,4 +52,10 @@
 
     </div>
 </body>
+
+<script>
+    function toggleSidebar() {
+        document.body.classList.toggle("open");
+    }
+</script>
 </html>
