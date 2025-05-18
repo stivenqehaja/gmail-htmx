@@ -1,13 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Neucha&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+
 * {
     font-family: 'Cooper Hewitt', sans-serif; 
     box-sizing: border-box;
 }
 
 
-html, body {
+body {
     margin: 0;
     padding: 0;
-    height: 100%;
 }
 
 #app-container {
@@ -18,55 +19,147 @@ html, body {
 }
 /* sidebar */
 #sidebar-container { 
-    flex: 0 0 20%;
-    height: 100%;
-    background-color: #504879;
-    overflow-y: auto;
 
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 75px;
+    height: 100%;
+    background: #504879;
+    transition: all 0.4s;
+}
+
+body.open #sidebar-container {
+    width: 350px;
+}
+
+button {
+        background: transparent;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+}
+
+#sidebar-inner { 
+    
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 300px;
+}
+
+#sidebar-headers {
+    display: flex;
+    align-items: center;
+    height: 60px;
+    padding: 0 1.25rem 0 0;
+    border-left: 3px solid transparent;
+    transition: all 0.4s;
+}
+
+#sidebar-headers:hover {
+    border-left: 3px solid #d4d7fc;
+}
+
+#sidebar-burger {
+    width: 70px;
+    height: 70px;
+    display: grid;
+    place-items: center;
+    background-color: #504879;
+    border: none;    
+}
+
+#sidebar-burger > i, body.open #sidebar-burger > i {
+    font-size: 25px;
+    color: #d4d7fc;
+    transition: all 0.4s
+}
+
+#sidebar-burger:hover > i, body.open #sidebar-burger > i {
+    color: #a5a6ca;
+}
+
+#sidebar-headers-title {
+    color: #a5a6ca;
+    opacity: 0;
+    transition: all 0.4s;
+}
+
+body.open #sidebar-headers-title {
+    opacity: 1;
+}
+
+#sidebar-account-list {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    gap: 12px;
+
 }
-    #sidebar-info {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
-        .add-account-btn {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
 
-            cursor: pointer;
-            background-color: #d4d7fc;
-            border-radius: 25px;
-            padding:0 20px 0 20px 
-        }
-        #google-icon {
-            height: 20px;
-            width: 20px;
-        }
-        .add-account-btn h3 {
-            padding-left: 10px;
-        }
-    #sidebar-list {
-       display: flex;
-    }
-        #profile-list {
-            list-style: none;
-        }    
-        .profile-list-item {
+#sidebar-account-list > button {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    height: 55px;
+    font-family: "Ubuntu";
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: 2px;
+    line-height: 1;
+    padding: 0 22px;
+    border-left: 3px solid transparent;
+    transition: all 0.4s;    
+}
 
-        }
+#sidebar-account-list > button:hover {
+    border-left: 3px solid #d4d7fc;
+}
 
+#sidebar-account-list > button.hasBorder {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #d4d7fc;
+    margin-bottom: 1rem;
+}
+
+#sidebar-account-list > button > img {
+    font-size: 25px;
+    color: #d4d7fc
+    transition: all 0.4s;
+}
+
+#sidebar-account-list > button:hover > i, #sidebar-account-list > button:hover > span {
+    color: #a5a6ca;
+}
+
+#sidebar-account-list > button > span {
+    opacity: 0;
+    color: #d4d7fc;
+    transition: all 0.4s;
+}
+
+body.open #sidebar-account-list > button > span {
+    opacity: 1;
+    transition: all 0.4s;
+}
+
+#google-icon {
+    height: 20px;
+    width: 20px;
+}
+
+.add-account-btn h3 {
+    padding-left: 10px;
+}
+
+
+
+/* OLD CONTENT */
 #container {
     flex: 1;
     height: 100%;
     background-color: #d4d7fc;
-    overflow-y: auto;
+    overflow-y:     ;
     padding: 1rem;
 
     display: flex;
@@ -74,8 +167,6 @@ html, body {
     justify-content: flex-start;
     align-items: center;
 }
-
-
 
 #login-container,
 #data-container, 
