@@ -11,26 +11,36 @@
     
 </head>
 <body>
-    <div class="container">
+    <div id="app-container">
 
-        <div id="login-container">
-            <h1>Log in to Google</h1>
-            <button onclick="window.location.href='/auth/google'" >Log In</button>
-        </div>
-        
-        <div id="data-container"
-                hx-get="/profile-data"
+        <!-- sidebar -->
+        <div id="sidebar-container">
+            <div class="sidebar-info">
+                <h1 class="sidebar-info-title">Gmail Hub</h1>
+                <buttonc class="add-account-btn" onclick="window.location.href='/auth/google'">
+                    <img id="google-icon" src="./static/google.png" alt="Google">
+                    <h3>Add Account</h3>
+                </button>
+            </div>
+            <nav id="sidebar-list"
+                hx-get="/ProfileList"
                 hx-trigger="load"
-                hx-target="#data-container"
+                hx-target="#profile-list"
                 hx-swap="innerHTML">
+                <ul id="profile-list"></ul>
+            </nav>
         </div>
 
-        <div id="email-container"
-            hx-get="/GetEmails"
-            hx-trigger="load"
-            hx-target="#email-container"
-            hx-swap="innerHTML"></div>
+        <!-- emails -->
+        <div id="container">
+            <div id="email-container"
+                hx-get="/GetAllEmails"
+                hx-trigger="load"
+                hx-target="#email-container"
+                hx-swap="innerHTML">
+            </div>
         </div>
+
     </div>
 </body>
 </html>

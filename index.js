@@ -16,6 +16,8 @@ const SQLiteStoreSession = SQLiteStore(session);
 
 // Middleware
 app.use(express.static('public'));
+app.use(express.static('static'));
+app.set('view-engine', 'ejs');
 app.use(express.json());
 app.use(session({
     store: new SQLiteStoreSession({
@@ -37,7 +39,7 @@ app.get('/', (req, res) => {
 
     res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
 });
-
+// LOG IN WITH GOOGLE
 app.get('/auth/google',(req, res) => {
     console.log('>>> Inside /auth/google');
     const redirectUrl = 'https://accounts.google.com/o/oauth2/auth?' + qs.stringify({
@@ -52,6 +54,7 @@ app.get('/auth/google',(req, res) => {
     res.redirect(redirectUrl);
 });
 
+// LOG IN WITH GOOGLE CALLBACK
 app.get('/oauth2callback', async(req, res) => { 
     console.log('>>> Inside /oauth2callback');
     const code = req.query.code;
@@ -82,7 +85,8 @@ app.get('/oauth2callback', async(req, res) => {
                 Authorization: `Bearer ${access_token}`
             }
         });
-        req.session.user = {
+        req.session.users = req.session.users || {}
+        req.session.users[userInfo.data.email] = {
             name: userInfo.data.name,
             email: userInfo.data.email,
             access_token,
@@ -99,55 +103,73 @@ app.get('/oauth2callback', async(req, res) => {
     }
 });
 
-app.get('/profile-data', async (req, res) => {
-    console.log('>>> Inside /profile-data request');
-    const user = req.session.user;
+app.get('/ProfileList', async (req, res) => {
+    console.log('>>> Inside /ProfileList request');
+    req.session.users = req.session.users || {};
+    const users = req.session.users;
     
-    if(!user) {
+    if(Object.keys(users).length === 0) {
         return res.status(401).send('<p>User not authenticated. <a href="/auth/google">Login with Google</a></p>');
     }
 
+    const refreshedUsers = {};
+
+
+
     // Refresh Token Logic
-    if(Date.now() > user.expires_in) {
+    for(const [email, user] of Object.entries(users)) {
+        if(Date.now() > user.expires_in) {
 
-        try {
-            const tokenResponse = await axios.post(
-                'https://oauth2.googleapis.com/token',
-                qs.stringify({
-                    client_id: process.env.GOOGLE_CLIENT_ID,
-                    client_secret: process.env.GOOGLE_CLIENT_SECRET,
-                    grant_type: 'refresh_token',
-                    refresh_token: user.refresh_token
-                }),
-                {
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-                }
-            );
+            try {
+                const tokenResponse = await axios.post(
+                    'https://oauth2.googleapis.com/token',
+                    qs.stringify({
+                        client_id: process.env.GOOGLE_CLIENT_ID,
+                        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+                        grant_type: 'refresh_token',
+                        refresh_token: user.refresh_token
+                    }),
+                    {
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                    }
+                );
 
-            user.access_token = tokenResponse.data.access_token;
-            user.expires_in = Date.now() + tokenResponse.data.expires_in * 1000;
-            req.session.user = user;
+                user.access_token = tokenResponse.data.access_token;
+                user.expires_in = Date.now() + tokenResponse.data.expires_in * 1000;
 
-
-        } catch(err) {
-            console.log('Failed to refresh token:', err.response?.data || err.message);
-            return res.redirect('/auth/google');
+            } catch(err) {
+                console.log('Failed to refresh token:', err.response?.data || err.message);
+                return res.redirect('/auth/google');
+            }
         }
 
+        refreshedUsers[email] = user;
     }
+
+    req.session.users = refreshedUsers;
+
+    const userListHtml = Object.values(refreshedUsers).map(user => `
+            <li class='profile-list-item'
+                hx-get='/GetAllEmails'
+                hx-target='#profile-list'
+                hx-swap='innerHTML'
+                data-email-id=${user.email}>
+                ${user.email}
+            </li>
+        `).join('');
+
     res.send(`
-        <h1>Logged In !</h1>
-        <p>Name: ${user.name}</p>
-        <p>Email: ${user.email}</p>
+        ${userListHtml}
     `);
 });
 
-app.get('/GetEmails', async (req, res) => {
+app.get('/GetAllEmails', async (req, res) => {
     
-    console.log('>>> Inside /GetEmails');
-    const user = req.session.user;
-    if(!user) {
-        return res.status(401).send('User not authenticated');
+    console.log('>>> Inside /GetAllEmails');
+    req.session.users = req.session.users || {};
+    const users = req.session.users;
+    if(Object.keys(users).length === 0) {
+        return res.status(401).send('No users authenticated');
     }
 
     function getHeaders(headers, name) {
@@ -160,75 +182,94 @@ app.get('/GetEmails', async (req, res) => {
         return match ? match[1] : headerValue;
     }
 
-    try {
-        const access_token = req.session.user.access_token;
-        const emailResponse = await axios.get(
-            'https://gmail.googleapis.com/gmail/v1/users/me/messages',
-            {
-                headers: {
-                    Authorization: `Bearer ${access_token}`
-                },
-                params: {
-                    maxResults: 5,
-                    labelIds: ['INBOX'],
-                    q: ''
-                }
-            }
-        );
+    const allEmailTables = [];
 
-        const messages = emailResponse.data.messages;
-        console.log('emailIds: ' , messages);
-        const fullMessages = [];
-        fullMessages.push(` 
-            <table><thead>
-                <tr>
-                    <th>Id</th>
-                    <th>Sender</th>
-                    <th>Subject</th>
-                    <th>Receiver</th>
-                </tr>
-            </thead>`);
-
-        for(const msg of messages) {
-            const messageResponse = await axios.get(
-                `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}`,
+    for(const [Email, Name] of Object.entries(users)) {
+        try {
+            const access_token = Name.access_token;
+            const emailResponse = await axios.get(
+                'https://gmail.googleapis.com/gmail/v1/users/me/messages',
                 {
                     headers: {
                         Authorization: `Bearer ${access_token}`
+                    },
+                    params: {
+                        maxResults: 5,
+                        labelIds: ['INBOX'],
+                        q: ''
                     }
-                ,
-                params: {
-                    format: 'metadata', // or 'full' for full body
-                    metadataHeaders: ['From', 'To', 'Subject', 'Date']                
                 }
-            })
+            );
 
-            const headers = messageResponse.data.payload.headers;
-            const emailId = messageResponse.data.id
-            const rawSender = getHeaders(headers, 'From');
-            const rawReceiver = getHeaders(headers, 'To');
+            const messages = emailResponse.data.messages || [];
+            const messageRows = [];
+            console.log('emailIds: ' , messages);
 
-            const sender = extractEmail(rawSender);
-            const receiver = extractEmail(rawReceiver);
-            const subject = getHeaders(headers, 'Subject');
- 
-           fullMessages.push(`
-                <tr>
-                    <th>${emailId}</th>
-                    <th>${sender}</th>
-                    <th>${subject}</th>
-                    <th>${receiver}</th>
-                </tr>
-            `);
-        };
-        fullMessages.push(`</tbody></table>`);
+            for(const msg of messages) {
+                const messageResponse = await axios.get(
+                    `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${access_token}`
+                        },
+                    params: {
+                        format: 'metadata', // or 'full' for full body
+                        metadataHeaders: ['From', 'To', 'Subject', 'Date']                
+                    }
+                })
 
-        console.log(fullMessages)
-        res.send(fullMessages.join(''));
-    } catch(err) {
-        console.log('Erorr fetching emails: ' + err.response?.data || err.message);
-        res.status(500).send('Failed to fetch emails');
+                const headers = messageResponse.data.payload.headers;
+                const emailId = messageResponse.data.id
+                const rawSender = getHeaders(headers, 'From');
+                const rawReceiver = getHeaders(headers, 'To');
+
+                const sender = extractEmail(rawSender);
+                const receiver = extractEmail(rawReceiver);
+                const subject = getHeaders(headers, 'Subject');
+    
+            messageRows.push(`
+                    <tr>
+                        <td>${emailId}</td>
+                        <td>${sender}</td>
+                        <td>${subject}</td>
+                        <td>${receiver}</td>
+                    </tr>
+                `);
+            };
+
+            const table = `
+                <div class="email">
+                    <h2>Emails for ${Email}</h2>
+                    <table border="1"> 
+                        <th>Id</th>
+                        <th>Senders</th>
+                        <th>Subject</th>
+                        <th>Receiver</th>
+                        <tbody>
+                            ${messageRows.join('')}
+                        </tbody>
+                    </table>
+                </div>
+                `;
+
+                allEmailTables.push(table);
+
+            console.log(table)
+        } catch(err) {
+            console.log('Error fetching emails for', Email, '-', err.response?.data || err.message || err);
+            continue;
+        }
     }
+      if (allEmailTables.length === 0) {
+        return res.status(500).send('Could not fetch any emails.');
+    }
+
+    res.send(`
+        <div class="email">
+            <h1>All Email Tables for Logged In Users</h1>
+            ${allEmailTables.join('')}
+        </div>
+    `);
 });
 
 
