@@ -3,41 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cooper+Hewitt&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script> 
     <title>Gmail-HTMX</title>
-    <style>
-        #login-container,
-        #data-container, 
-        body{ 
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items:center;
-        }
-    </style>
+    
 </head>
 <body>
-    <div class="container">
+    <div id="app-container">
 
-        <div id="login-container">
-            <h1>Log in to Google</h1>
-            <button onclick="window.location.href='/auth/google'" >Log In</button>
-        </div>
-        
-        <div id="data-container"
-                hx-get="/profile-data"
+        <!-- sidebar -->
+        <div id="sidebar-container">
+            <div class="sidebar-info">
+                <h1 class="sidebar-info-title">Gmail Hub</h1>
+                <buttonc class="add-account-btn" onclick="window.location.href='/auth/google'">
+                    <img id="google-icon" src="./static/google.png" alt="Google">
+                    <h3>Add Account</h3>
+                </button>
+            </div>
+            <nav id="sidebar-list"
+                hx-get="/ProfileList"
                 hx-trigger="load"
-                hx-target="#data-container"
-                hx-swap="innerHTML"
-                ><p>Loading profile data...</p>
+                hx-target="#profile-list"
+                hx-swap="innerHTML">
+                <ul id="profile-list"></ul>
+            </nav>
         </div>
 
-        <div id="email-container"
-            hx-get="/GetEmails"
-            hx-trigger="load"
-            hx-target="#email-container"
-            hx-swap="innerHTML"></div>
+        <!-- emails -->
+        <div id="container">
+            <div id="email-container"
+                hx-get="/GetAllEmails"
+                hx-trigger="load"
+                hx-target="#email-container"
+                hx-swap="innerHTML">
+            </div>
         </div>
+
     </div>
 </body>
 </html>
