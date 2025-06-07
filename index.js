@@ -118,7 +118,8 @@ app.get('/AccountList', async (req, res) => {
 
     // Refresh Token Logic
     for(const [email, user] of Object.entries(users)) {
-        if(Date.now() > user.expires_in) {
+        user.expires_in = Number(user.expires_in);
+        if(Date.now() > (user.expires_in)) {
 
             try {
                 const tokenResponse = await axios.post(
@@ -185,6 +186,22 @@ app.get('/GetAllEmails', async (req, res) => {
         return match ? match[1] : headerValue;
     }
 
+    function getEmailDate(date) {
+        const today = new Date();
+        const isToday = (
+            date .getFullYear() === today.getFullYear() &&
+            date.getMonth() === today.getMonth() &&
+            date.getDate() === today.getDate()
+        );
+        // console.log(`${date.toLocaleString( 'en-US', { month: 'short'} )} ${date.getDate()}`);
+        if(!isToday) {
+            return `${date.toLocaleString( 'en-US', { month: 'short'} )} ${date.getDate()}`; 
+        }
+        else {
+            return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes(session).toString().padStart(2, '0')}`;
+        }
+    }
+
     const allEmailTables = [];
 
     for(const [Email, Name] of Object.entries(users)) {
@@ -229,13 +246,16 @@ app.get('/GetAllEmails', async (req, res) => {
                 const sender = extractEmail(rawSender);
                 const receiver = extractEmail(rawReceiver);
                 const subject = getHeaders(headers, 'Subject');
-    
+                const dateStr = getEmailDate(new Date(getHeaders(headers, 'Date')));
+  
+
             messageRows.push(`
                     <tr>
+                        <td>${receiver}</td>
                         <td>${emailId}</td>
                         <td>${sender}</td>
                         <td>${subject}</td>
-                        <td>${receiver}</td>
+                        <td>${dateStr}</td>
                     </tr>
                 `);
             };
@@ -244,10 +264,11 @@ app.get('/GetAllEmails', async (req, res) => {
                 <div class="email">
                     <h2>Emails for ${Email}</h2>
                     <table border="1"> 
+                        <th>Receiver</th>
                         <th>Id</th>
                         <th>Senders</th>
                         <th>Subject</th>
-                        <th>Receiver</th>
+                        <th>Date</th>
                         <tbody>
                             ${messageRows.join('')}
                         </tbody>
