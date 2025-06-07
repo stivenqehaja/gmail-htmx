@@ -1,0 +1,144 @@
+#app-container {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    flex-direction: row;
+}
+
+/* sidebar */
+#sidebar-container { 
+    position: relative;
+    width: 56px;
+    height: 100%;
+    background: #504879;
+    transition: all 0.4s;
+    flex-shrink: 0;
+}
+
+body.open #sidebar-container {
+    width: 262px;
+}
+
+#sidebar-container button {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+#sidebar-inner { 
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 225px;
+}
+
+#sidebar-headers {
+    display: flex;
+    align-items: center;
+    height: 45px;
+    padding: 0 0.94rem 0 0;
+    border-left: 3px solid transparent;
+    transition: all 0.4s;
+}
+
+#sidebar-headers:hover {
+    border-left: 3px solid #d4d7fc;
+}
+
+#sidebar-burger {
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    background-color: #504879;
+    border: none;    
+}
+
+#sidebar-burger > i, body.open #sidebar-burger > i {
+    font-size: 19px;
+    color: #d4d7fc;
+    transition: all 0.4s
+}
+
+#sidebar-burger:hover > i, body.open #sidebar-burger > i {
+    color: #a5a6ca;
+}
+
+#sidebar-headers-title {
+    color: #a5a6ca;
+    opacity: 0;
+    transition: all 0.4s;
+    font-size: 18px;
+}
+
+body.open #sidebar-headers-title {
+    opacity: 1;
+}
+
+#sidebar-account-list {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+#sidebar-account-list > button {
+    display: flex;
+    gap: 9px;
+    align-items: center;
+    height: 41px;
+    font-family: "Ubuntu";
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 1.5px;
+    line-height: 1;
+    padding: 0 16px;
+    border-left: 3px solid transparent;
+    transition: all 0.4s;    
+}
+
+#sidebar-account-list > button:hover {
+    border-left: 3px solid #d4d7fc;
+}
+
+#sidebar-account-list > button.hasBorder {
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #d4d7fc;
+    margin-bottom: 0.75rem;
+}
+
+#sidebar-account-list > button > i {
+    font-size: 19px;
+    color: #d4d7fc; 
+    transition: all 0.4s;
+}
+
+#sidebar-account-list > button:hover > i, #sidebar-account-list > button:hover > span {
+    color: #a5a6ca;
+}
+
+#sidebar-account-list > button > span {
+    opacity: 0;
+    color: #d4d7fc;
+    transition: all 0.4s;
+}
+
+body.open #sidebar-account-list > button > span {
+    opacity: 1;
+    transition: all 0.4s;
+}
+
+#google-icon {
+    height: 15px;
+    width: 15px;
+}
+
+.add-account-btn h3 {
+    padding-left: 7px;
+}
+
+.userTablePfp {
+    height: 7px;
+    width: 7px;
+    border-radius: 100%;
+}
