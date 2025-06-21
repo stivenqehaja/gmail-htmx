@@ -36,12 +36,12 @@ app.use(session({
 
 // Routes
 app.get('/', (req, res) => { 
-
+    console.log('>>> Inside GET '/'');
     res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
 });
 // LOG IN WITH GOOGLE
 app.get('/auth/google',(req, res) => {
-    console.log('>>> Inside /auth/google');
+    console.log('>>> Inside GET /auth/google');
     const redirectUrl = 'https://accounts.google.com/o/oauth2/auth?' + qs.stringify({
         client_id: process.env.GOOGLE_CLIENT_ID,
         redirect_uri: process.env.GOOGLE_REDIRECT_URI,
@@ -56,11 +56,11 @@ app.get('/auth/google',(req, res) => {
 
 // LOG IN WITH GOOGLE CALLBACK
 app.get('/oauth2callback', async(req, res) => { 
-    console.log('>>> Inside /oauth2callback');
+    console.log('>>> Inside GET /oauth2callback');
     const code = req.query.code;
 
     try {
-        console.log('>>> Before /token request');
+        console.log('>>> Before /token REQ');
         const response = await axios.post(
             'https://oauth2.googleapis.com/token',
             qs.stringify({
@@ -79,6 +79,7 @@ app.get('/oauth2callback', async(req, res) => {
 
         const { access_token, refresh_token, expires_in } = response.data;
 
+        console.log('>>> Before /oauth2/v3/userinfo REQ');
         const userInfo = await axios.get(
             'https://www.googleapis.com/oauth2/v3/userinfo',{
             headers: {
@@ -104,12 +105,13 @@ app.get('/oauth2callback', async(req, res) => {
 });
 
 app.get('/AccountList', async (req, res) => {
-    console.log('>>> Inside /AccountList request');
+    console.log('>>> Inside GET /AccountList');
     req.session.users = req.session.users || {};
     const users = req.session.users;
     
     if(Object.keys(users).length === 0) {
-        return res.status(401).send('<p>User not authenticated. <a href="/auth/google">Login with Google</a></p>');
+        console.log('No users found');
+        return;
     }
 
     const refreshedUsers = {};
@@ -122,6 +124,7 @@ app.get('/AccountList', async (req, res) => {
         if(Date.now() > (user.expires_in)) {
 
             try {
+                console.log('>>> Before Refresh /token REQ');
                 const tokenResponse = await axios.post(
                     'https://oauth2.googleapis.com/token',
                     qs.stringify({
@@ -148,7 +151,7 @@ app.get('/AccountList', async (req, res) => {
     }
 
     req.session.users = refreshedUsers;
-    console.log(refreshedUsers);
+    console.log(`Refresh Users${refreshedUsers}`);
    const userListHtml = Object.values(refreshedUsers).map(user => `
             <button class='sidebar-account-list-item'
                     type="button"
@@ -169,11 +172,12 @@ app.get('/AccountList', async (req, res) => {
 
 app.get('/GetAllEmails', async (req, res) => {
     
-    console.log('>>> Inside /GetAllEmails');
+    console.log('>>> Inside GET /GetAllEmails');
     req.session.users = req.session.users || {};
     const users = req.session.users;
     if(Object.keys(users).length === 0) {
-        return res.status(401).send('No users authenticated');
+        console.log('No users found to fetch emails!');
+        return res.send(`<h2>No Users found, please Add an Account</h2>`);
     }
 
     function getHeaders(headers, name) {
@@ -207,6 +211,7 @@ app.get('/GetAllEmails', async (req, res) => {
     for(const [Email, Name] of Object.entries(users)) {
         try {
             const access_token = Name.access_token;
+            console.log('>>> Before /gmail/v1/users/me/messages REQ');
             const emailResponse = await axios.get(
                 'https://gmail.googleapis.com/gmail/v1/users/me/messages',
                 {
@@ -298,9 +303,8 @@ app.get('/GetAllEmails', async (req, res) => {
 
 
 app.get('/GetAllEmails/:emailId', async(req, res) => {
-
     const email = req.params.emailId;
-    console.log(`>>> Inside /GetAllEmails/${email}`);
+    console.log(`>>> Inside GET /GetAllEmails/${email}`);
     req.session.users = req.session.users || {};
     const users = req.session.users;
     if(Object.keys(users).length === 0) {
