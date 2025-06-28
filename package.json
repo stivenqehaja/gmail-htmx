@@ -1,24 +1,22 @@
 {
   "name": "gmail-htmx",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Gmail HTMX Application",
+  "main": "app.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon index.js"
+    "start": "node app.js",
+    "dev": "nodemon app.js"
   },
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "axios": "^1.9.0",
-    "connect-sqlite3": "^0.9.15",
-    "cookie-parser": "^1.4.7",
-    "dotenv": "^16.5.0",
-    "express": "^5.1.0",
-    "express-session": "^1.18.1",
-    "nodemon": "^3.1.10",
-    "qs": "^6.14.0",
-    "sqlite3": "^5.1.7"
+    "express": "^4.18.2",
+    "axios": "^1.6.0",
+    "qs": "^6.11.0",
+    "dotenv": "^16.3.1",
+    "express-session": "^1.17.3",
+    "connect-sqlite3": "^0.9.13"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   }
 }
